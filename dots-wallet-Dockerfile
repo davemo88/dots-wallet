@@ -1,0 +1,8 @@
+FROM rust:latest AS builder
+
+ADD src/ src/
+ADD Cargo.toml .
+
+RUN cargo build
+
+CMD ["cargo", "run"]
