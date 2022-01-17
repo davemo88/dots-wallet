@@ -1,0 +1,11 @@
+version: "3.8"
+services:
+    dots-wallet:
+        build:
+            context: .
+            dockerfile: dots-wallet-Dockerfile
+    mongodb:
+        image: mongo
+        environment:
+          MONGO_INITDB_ROOT_USERNAME: dotswallet
+          MONGO_INITDB_ROOT_PASSWORD: astrongpassword
