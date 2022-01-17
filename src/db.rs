@@ -21,7 +21,7 @@ const APP_NAME: &'static str = "dots-wallet";
 const DB_NAME: &'static str = "wallets";
 const COLLECTION_NAME: &'static str = "wallets";
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Wallet {
     pub id: WalletId,
     pub items: Vec<ItemId>,
@@ -101,7 +101,8 @@ impl DB {
         }
     }
 
-    pub async fn add_item(&self, wallet_id: WalletId, item_id: ItemId) -> Result<()> {
+// TODO: return the updated wallet
+    pub async fn add_item(&self, wallet_id: WalletId, item_id: ItemId) -> Result<Wallet> {
         let mut wallet = self.get_wallet(wallet_id).await?;
         if wallet.items.contains(&item_id) {
             return Err(Error::ItemAlreadyInWallet)
@@ -110,9 +111,9 @@ impl DB {
         let collection = self.wallet_collection();
         collection.update_one(
             doc! {"id": wallet_id },
-            doc! {"items": wallet.items }, 
+            doc! {"items": wallet.clone().items }, 
             None
         ).await?;
-        Ok(())
+        Ok(wallet)
     }
 }

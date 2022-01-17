@@ -4,6 +4,7 @@ use warp::{ Reply, Rejection };
 use crate::{
     DB,
     db::Wallet,
+    error::Error,
     WalletId,
     ItemId,
     WalletCache,
@@ -58,8 +59,8 @@ pub async fn create_wallet_handler(body: CreateWalletBody, wallet_cache: WalletC
         CreateWalletBody::V1Body(id) => id
     };
     let wallet_exists = {
-        let wallets = wallet_cache.read().await;    
-        wallets.contains(&wallet_id) || 
+        let wallet_cache = wallet_cache.read().await;    
+        wallet_cache.contains(&wallet_id) || 
             wallet_db.get_wallet(wallet_id).await.is_ok()
     };
     if wallet_exists {
@@ -83,11 +84,9 @@ pub async fn add_item_handler(wallet_id: u32, body: AddItemBody, wallet_cache: W
         AddItemBody::V1Body(item_id) => item_id
     };
     match wallet_db.add_item(wallet_id, item_id).await {
-        Ok(()) => {
-            Ok(warp::reply::json(&JsonResponse::success(Some((wallet_id, item_id))))),
-// TODO: if wallet in cache, just update the item set
-// else fetch the wallet from the db
-// slightly inefficient because we an extra query to get the wallet twice to update the value
+        Ok(wallet) => {
+            put_wallet_in_cache(wallet, wallet_cache).await;
+            Ok(warp::reply::json(&JsonResponse::success(Some((wallet_id, item_id)))))
         }
         Err(e) => Ok(warp::reply::json(&
                 JsonResponse::<String>::error(e.to_string(), None)))
@@ -96,7 +95,19 @@ pub async fn add_item_handler(wallet_id: u32, body: AddItemBody, wallet_cache: W
 
 pub async fn retrieve_item_handler(wallet_id: u32, item_id: u32, wallet_cache: WalletCache, wallet_db: DB) -> WebResult<impl Reply> {
 // check the cache, if not there fetch the wallet and then put it in the cache
-    Ok(warp::reply::json(&JsonResponse::success(Some("ok".to_string()))))
+    let cached_items = {
+        let wallet_cache = wallet_cache.read().await;
+        wallet_cache.get(&wallet_id)
+    };
+    match cached_items {
+        Some(items) => 
+            if items.contains(&item_id) {
+                Ok(warp::reply::json(&JsonResponse::success(Some(item_id))))
+            } else {
+                Ok(warp::reply::json(&JsonResponse::<String>::error(
+                            Error::NoSuchItem.to_string(), None)))
+            }
+    }
 }
 
 async fn put_wallet_in_cache(wallet: Wallet, wallet_cache: WalletCache) {
