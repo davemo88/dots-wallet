@@ -41,6 +41,7 @@ $ curl -d '{"V1Body":77}' -H 'Content-Type: application/json' localhost:5000/wal
 $ curl -d '{"V1Body":77}' -H 'Content-Type: application/json' localhost:5000/wallet/64
 {"status":"error","data":null,"message":"no such wallet"}
 
+# other request body version
 $ curl -d '{"V2Body":[123,"An Item"]}' -H 'Content-Type: application/json' localhost:5000/wallet/654
 {"status":"success","data":[654,123],"message":null}
 ```
