@@ -45,7 +45,7 @@ $ curl -d '{"V1Body":77}' -H 'Content-Type: application/json' localhost:5000/wal
 $ curl -d '{"V2Body":[123,"An Item"]}' -H 'Content-Type: application/json' localhost:5000/wallet/654
 {"status":"success","data":[654,123],"message":null}
 ```
-### Retrieve Item from Wallet:
+### Retrieve Item from Wallet
 `GET /wallet/:wallet_id/item/:item_id`. Examples with `curl`:
 ```bash
 $ curl localhost:5000/wallet/65/item/77
