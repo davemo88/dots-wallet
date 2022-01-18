@@ -78,7 +78,7 @@ impl DB {
 
     pub async fn get_wallet(&self, wallet_id: WalletId) -> Result<Wallet> {
         let collection = self.wallet_collection();
-        let filter = doc! { "id": format!("{}", wallet_id) };
+        let filter = doc! { "id": wallet_id };
         match collection.find_one(filter, None).await? {
             Some(wallet) => Ok(wallet),
             None => Err(Error::NoSuchWallet),
@@ -92,16 +92,6 @@ impl DB {
         Ok(())
     }
 
-    pub async fn get_item(&self, wallet_id: WalletId, item_id: ItemId) -> Result<ItemId> {
-        let wallet = self.get_wallet(wallet_id).await?;
-        if wallet.items.contains(&item_id) {
-            Ok(item_id)
-        } else {
-            Err(Error::NoSuchItem)
-        }
-    }
-
-// TODO: return the updated wallet
     pub async fn add_item(&self, wallet_id: WalletId, item_id: ItemId) -> Result<Wallet> {
         let mut wallet = self.get_wallet(wallet_id).await?;
         if wallet.items.contains(&item_id) {
@@ -111,7 +101,7 @@ impl DB {
         let collection = self.wallet_collection();
         collection.update_one(
             doc! {"id": wallet_id },
-            doc! {"items": wallet.clone().items }, 
+            doc! { "$set": {"items": wallet.clone().items }}, 
             None
         ).await?;
         Ok(wallet)

@@ -58,8 +58,8 @@ async fn main() {
         .and(with_shared(wallet_db.clone()))
         .and_then(retrieve_item_handler);
 
-    let routes = create_wallet
-        .or(add_item)
+    let routes = add_item
+        .or(create_wallet)
         .or(retrieve_item);
 
     warp::serve(routes).run(([0,0,0,0], 5000)).await;
