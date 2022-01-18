@@ -46,17 +46,20 @@ impl<T: Serialize> Response<T> {
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum CreateWalletBody {
-    V1Body(WalletId)
+    V1Body(WalletId),
+    V2Body(WalletId, String)
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum AddItemBody {
-    V1Body(ItemId)
+    V1Body(ItemId),
+    V2Body(ItemId, String)
 }
 
 pub async fn create_wallet_handler(body: CreateWalletBody, wallet_cache: WalletCache, wallet_db: DB) -> WebResult<impl Reply> {
     let wallet_id = match body {
-        CreateWalletBody::V1Body(id) => id
+        CreateWalletBody::V1Body(id) => id,
+        CreateWalletBody::V2Body(id, _) => id
     };
     let wallet_exists = {
         let wallet_cache = wallet_cache.read().await;    
@@ -77,7 +80,8 @@ pub async fn create_wallet_handler(body: CreateWalletBody, wallet_cache: WalletC
 
 pub async fn add_item_handler(wallet_id: WalletId, body: AddItemBody, wallet_cache: WalletCache, wallet_db: DB) -> WebResult<impl Reply> {
     let item_id = match body {
-        AddItemBody::V1Body(item_id) => item_id
+        AddItemBody::V1Body(item_id) => item_id,
+        AddItemBody::V2Body(item_id, _) => item_id
     };
     match wallet_db.add_item(wallet_id, item_id).await {
         Ok(wallet) => {
@@ -130,6 +134,10 @@ mod test {
         use super::*;
         let create_wallet_body = CreateWalletBody::V1Body(10);
         let add_item_body = AddItemBody::V1Body(10);
+        println!("{}", serde_json::to_string(&create_wallet_body).unwrap());
+        println!("{}", serde_json::to_string(&add_item_body).unwrap());
+        let create_wallet_body = CreateWalletBody::V2Body(10, "Bob".into());
+        let add_item_body = AddItemBody::V2Body(10, "Bob".into());
         println!("{}", serde_json::to_string(&create_wallet_body).unwrap());
         println!("{}", serde_json::to_string(&add_item_body).unwrap());
     }

@@ -15,11 +15,6 @@ use crate::{
 
 type Result<T> = std::result::Result<T, Error>;
 
-// TODO: use environment variables here
-const MONGO_HOST: &'static str = "localhost";
-const MONGO_PORT: &'static str = "27017";
-const MONGO_USERNAME: &'static str = "root";
-const MONGO_PASSWORD: &'static str = "secret";
 const APP_NAME: &'static str = "dots-wallet";
 const DB_NAME: &'static str = "wallets";
 const COLLECTION_NAME: &'static str = "wallets";
@@ -31,7 +26,11 @@ pub struct DB {
 
 impl DB {
     pub async fn new() -> Result<Self> {
-        let mut options = ClientOptions::parse(format!("mongodb://{}:{}@{}:{}", MONGO_USERNAME, MONGO_PASSWORD, MONGO_HOST, MONGO_PORT)).await?;
+        let user = env::var("MONGO_USERNAME").unwrap_or("root".into());
+        let pass = env::var("MONGO_PASSWORD").unwrap_or("secret".into());
+        let host = env::var("MONGO_HOST").unwrap_or("localhost".into());
+        let port = env::var("MONGO_PORT").unwrap_or("27017".into());
+        let mut options = ClientOptions::parse(format!("mongodb://{}:{}@{}:{}", user, pass, host, port)).await?;
         options.app_name = Some(APP_NAME.into());
         options.default_database = Some(DB_NAME.into());
 

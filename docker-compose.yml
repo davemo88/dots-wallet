@@ -4,6 +4,10 @@ services:
         build:
             context: .
             dockerfile: dots-wallet-Dockerfile
+        ports:
+          - "5000:5000"
+        environment:
+          MONGO_HOST: mongodb
     mongodb:
         image: mongo
         environment:
