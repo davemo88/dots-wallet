@@ -75,7 +75,7 @@ pub async fn create_wallet_handler(body: CreateWalletBody, wallet_cache: WalletC
     }
 }
 
-pub async fn add_item_handler(wallet_id: u32, body: AddItemBody, wallet_cache: WalletCache, wallet_db: DB) -> WebResult<impl Reply> {
+pub async fn add_item_handler(wallet_id: WalletId, body: AddItemBody, wallet_cache: WalletCache, wallet_db: DB) -> WebResult<impl Reply> {
     let item_id = match body {
         AddItemBody::V1Body(item_id) => item_id
     };
@@ -88,7 +88,7 @@ pub async fn add_item_handler(wallet_id: u32, body: AddItemBody, wallet_cache: W
     }
 }
 
-pub async fn retrieve_item_handler(wallet_id: u32, item_id: u32, wallet_cache: WalletCache, wallet_db: DB) -> WebResult<impl Reply> {
+pub async fn retrieve_item_handler(wallet_id: WalletId, item_id: ItemId, wallet_cache: WalletCache, wallet_db: DB) -> WebResult<impl Reply> {
 // check the cache, if not there fetch the wallet and then put it in the cache
     let wallet_items = {
         let mut wallet_cache = wallet_cache.write().await;

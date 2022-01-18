@@ -59,7 +59,7 @@ async fn main() {
         .and_then(create_wallet_handler);
 
     let add_item = warp::path("wallet")
-        .and(warp::path::param::<u32>())
+        .and(warp::path::param::<WalletId>())
         .and(warp::filters::path::end())
         .and(warp::post())
         .and(warp::body::json())
@@ -68,9 +68,9 @@ async fn main() {
         .and_then(add_item_handler);
 
     let retrieve_item = warp::path("wallet")
-        .and(warp::path::param::<u32>())
+        .and(warp::path::param::<WalletId>())
         .and(warp::path("item"))
-        .and(warp::path::param::<u32>())
+        .and(warp::path::param::<ItemId>())
         .and(warp::filters::path::end())
         .and(warp::get())
         .and(with_shared(wallet_cache.clone()))
