@@ -64,15 +64,14 @@ pub async fn create_wallet_handler(body: CreateWalletBody, wallet_cache: WalletC
             wallet_db.get_wallet(wallet_id).await.is_ok()
     };
     if wallet_exists {
-        return Ok(json(&Response::<String>::error(
-            Error::WalletAlreadyExists.to_string(), None)));
+        return Ok(json(&Response::<()>::error(Error::WalletAlreadyExists.to_string(), None)));
     }
     match wallet_db.insert_wallet(wallet_id).await {
         Ok(()) => {
             put_wallet_in_cache(Wallet::new(wallet_id), wallet_cache.clone()).await;
             Ok(json(&Response::success(Some(wallet_id))))
         }
-        Err(e) => Ok(json(&Response::<String>::error(e.to_string(), None)))
+        Err(e) => Ok(json(&Response::<()>::error(e.to_string(), None)))
     }
 }
 
@@ -85,7 +84,7 @@ pub async fn add_item_handler(wallet_id: u32, body: AddItemBody, wallet_cache: W
             put_wallet_in_cache(wallet, wallet_cache).await;
             Ok(json(&Response::success(Some((wallet_id, item_id)))))
         }
-        Err(e) => Ok(json(&Response::<String>::error(e.to_string(), None)))
+        Err(e) => Ok(json(&Response::<()>::error(e.to_string(), None)))
     }
 }
 
@@ -105,15 +104,14 @@ pub async fn retrieve_item_handler(wallet_id: u32, item_id: u32, wallet_cache: W
                     put_wallet_in_cache(wallet.clone(), wallet_cache).await;
                     wallet.items.iter().copied().collect()
                 }
-                Err(e)=> return Ok(json(&Response::<String>::error(
-                    e.to_string(), None)))
+                Err(e)=> return Ok(json(&Response::<()>::error(e.to_string(), None)))
             }
         }
     };
     if wallet_items.contains(&item_id) {
         Ok(json(&Response::success(Some(item_id))))
     } else {
-        Ok(json(&Response::<String>::error(Error::NoSuchItem.to_string(), None)))
+        Ok(json(&Response::<()>::error(Error::NoSuchItem.to_string(), None)))
     }
 }
 
