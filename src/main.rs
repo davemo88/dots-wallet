@@ -36,6 +36,7 @@ async fn main() {
     wallet_db.init().await.unwrap();
 
     let create_wallet = warp::path("wallet")
+        .and(warp::filters::path::end())
         .and(warp::post())
         .and(warp::body::json())
         .and(with_shared(wallet_cache.clone()))
@@ -44,6 +45,7 @@ async fn main() {
 
     let add_item = warp::path("wallet")
         .and(warp::path::param::<u32>())
+        .and(warp::filters::path::end())
         .and(warp::post())
         .and(warp::body::json())
         .and(with_shared(wallet_cache.clone()))
@@ -54,13 +56,16 @@ async fn main() {
         .and(warp::path::param::<u32>())
         .and(warp::path("item"))
         .and(warp::path::param::<u32>())
+        .and(warp::filters::path::end())
+        .and(warp::get())
         .and(with_shared(wallet_cache.clone()))
         .and(with_shared(wallet_db.clone()))
         .and_then(retrieve_item_handler);
 
-    let routes = add_item
-        .or(create_wallet)
-        .or(retrieve_item);
+    let routes = create_wallet
+        .or(add_item)
+        .or(retrieve_item)
+        .with(warp::cors().allow_any_origin());
 
     warp::serve(routes).run(([0,0,0,0], 5000)).await;
 }

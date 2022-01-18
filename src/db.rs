@@ -101,7 +101,7 @@ impl DB {
         let collection = self.wallet_collection();
         collection.update_one(
             doc! {"id": wallet_id },
-            doc! { "$set": {"items": wallet.clone().items }}, 
+            doc! {"$set": {"items": wallet.clone().items }},
             None
         ).await?;
         Ok(wallet)
