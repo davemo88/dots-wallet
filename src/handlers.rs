@@ -1,6 +1,6 @@
 use std::collections::HashSet;
 use serde::{Serialize, Deserialize};
-use warp::{ Reply, Rejection };
+use warp::{ Reply, Rejection, reply::json };
 use crate::{
     DB,
     db::Wallet,
@@ -20,15 +20,15 @@ pub enum Status {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-struct JsonResponse<T: Serialize> {
+struct Response<T: Serialize> {
     pub status: Status,
     pub data: Option<T>,
     pub message: Option<String>,
 }
 
-impl<T: Serialize> JsonResponse<T> {
+impl<T: Serialize> Response<T> {
     fn success(data: Option<T>) -> Self {
-        JsonResponse {
+        Response {
             status: Status::Success,
             data,
             message: None,
@@ -36,7 +36,7 @@ impl<T: Serialize> JsonResponse<T> {
     }
 
     fn error(message: String, data: Option<T>) -> Self {
-        JsonResponse {
+        Response {
             status: Status::Error,
             data,
             message: Some(message),
@@ -64,17 +64,15 @@ pub async fn create_wallet_handler(body: CreateWalletBody, wallet_cache: WalletC
             wallet_db.get_wallet(wallet_id).await.is_ok()
     };
     if wallet_exists {
-        return Ok(warp::reply::json(&JsonResponse::<String>::error(
+        return Ok(json(&Response::<String>::error(
             Error::WalletAlreadyExists.to_string(), None)));
     }
     match wallet_db.insert_wallet(wallet_id).await {
         Ok(()) => {
             put_wallet_in_cache(Wallet::new(wallet_id), wallet_cache.clone()).await;
-            Ok(warp::reply::json(&
-                JsonResponse::success(Some(wallet_id))))
+            Ok(json(&Response::success(Some(wallet_id))))
         }
-        Err(e) => Ok(warp::reply::json(&
-                JsonResponse::<String>::error(e.to_string(), None)))
+        Err(e) => Ok(json(&Response::<String>::error(e.to_string(), None)))
     }
 }
 
@@ -85,10 +83,9 @@ pub async fn add_item_handler(wallet_id: u32, body: AddItemBody, wallet_cache: W
     match wallet_db.add_item(wallet_id, item_id).await {
         Ok(wallet) => {
             put_wallet_in_cache(wallet, wallet_cache).await;
-            Ok(warp::reply::json(&JsonResponse::success(Some((wallet_id, item_id)))))
+            Ok(json(&Response::success(Some((wallet_id, item_id)))))
         }
-        Err(e) => Ok(warp::reply::json(&
-                JsonResponse::<String>::error(e.to_string(), None)))
+        Err(e) => Ok(json(&Response::<String>::error(e.to_string(), None)))
     }
 }
 
@@ -108,16 +105,15 @@ pub async fn retrieve_item_handler(wallet_id: u32, item_id: u32, wallet_cache: W
                     put_wallet_in_cache(wallet.clone(), wallet_cache).await;
                     wallet.items.iter().copied().collect()
                 }
-                Err(e)=> return Ok(warp::reply::json(&JsonResponse::<String>::error(
+                Err(e)=> return Ok(json(&Response::<String>::error(
                     e.to_string(), None)))
             }
         }
     };
     if wallet_items.contains(&item_id) {
-        Ok(warp::reply::json(&JsonResponse::success(Some(item_id))))
+        Ok(json(&Response::success(Some(item_id))))
     } else {
-        Ok(warp::reply::json(&JsonResponse::<String>::error(
-                    Error::NoSuchItem.to_string(), None)))
+        Ok(json(&Response::<String>::error(Error::NoSuchItem.to_string(), None)))
     }
 }
 

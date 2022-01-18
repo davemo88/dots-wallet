@@ -1,3 +1,4 @@
+use std::env;
 use serde::{Serialize, Deserialize};
 use mongodb::{
     Client, 
@@ -13,6 +14,7 @@ type Result<T> = std::result::Result<T, Error>;
 pub type WalletId = u32;
 pub type ItemId = u32;
 
+// TODO: use environment variables here
 const MONGO_HOST: &'static str = "localhost";
 const MONGO_PORT: &'static str = "27017";
 const MONGO_USERNAME: &'static str = "root";
@@ -100,8 +102,8 @@ impl DB {
         wallet.items.push(item_id);
         let collection = self.wallet_collection();
         collection.update_one(
-            doc! {"id": wallet_id },
-            doc! {"$set": {"items": wallet.clone().items }},
+            doc! { "id": wallet_id },
+            doc! { "$set": {"items": wallet.clone().items }},
             None
         ).await?;
         Ok(wallet)
