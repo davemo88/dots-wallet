@@ -1,5 +1,4 @@
 use std::env;
-use serde::{Serialize, Deserialize};
 use mongodb::{
     Client, 
     Collection,
@@ -7,12 +6,14 @@ use mongodb::{
     IndexModel,
     options::{ClientOptions, IndexOptions}, 
 };
-//use anyhow::Result;
 use crate::error::Error;
-type Result<T> = std::result::Result<T, Error>;
+use crate::{
+    WalletId,
+    ItemId,
+    Wallet
+};
 
-pub type WalletId = u32;
-pub type ItemId = u32;
+type Result<T> = std::result::Result<T, Error>;
 
 // TODO: use environment variables here
 const MONGO_HOST: &'static str = "localhost";
@@ -22,21 +23,6 @@ const MONGO_PASSWORD: &'static str = "secret";
 const APP_NAME: &'static str = "dots-wallet";
 const DB_NAME: &'static str = "wallets";
 const COLLECTION_NAME: &'static str = "wallets";
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Wallet {
-    pub id: WalletId,
-    pub items: Vec<ItemId>,
-}
-
-impl Wallet {
-    pub fn new(id: WalletId) -> Self {
-        Self {
-            id,
-            items: vec![]
-        }
-    }
-}
 
 #[derive(Clone, Debug)]
 pub struct DB {
@@ -79,18 +65,16 @@ impl DB {
     }
 
     pub async fn get_wallet(&self, wallet_id: WalletId) -> Result<Wallet> {
-        let collection = self.wallet_collection();
-        let filter = doc! { "id": wallet_id };
-        match collection.find_one(filter, None).await? {
+        let filter = doc!{"id": wallet_id};
+        match self.wallet_collection().find_one(filter, None).await? {
             Some(wallet) => Ok(wallet),
             None => Err(Error::NoSuchWallet),
         }
     }
 
     pub async fn insert_wallet(&self, wallet_id: WalletId) -> Result<()> {
-        let new_wallet = Wallet::new(wallet_id); 
-        let collection = self.wallet_collection();
-        let _inserted_id = collection.insert_one(new_wallet,None).await?;
+        let _inserted_id = self.wallet_collection()
+            .insert_one(Wallet::new(wallet_id), None).await?;
         Ok(())
     }
 
@@ -100,10 +84,9 @@ impl DB {
             return Err(Error::ItemAlreadyInWallet)
         }
         wallet.items.push(item_id);
-        let collection = self.wallet_collection();
-        collection.update_one(
-            doc! { "id": wallet_id },
-            doc! { "$set": {"items": wallet.clone().items }},
+        self.wallet_collection().update_one(
+            doc!{"id": wallet_id},
+            doc!{"$set": {"items": wallet.clone().items}},
             None
         ).await?;
         Ok(wallet)

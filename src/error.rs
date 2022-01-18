@@ -1,4 +1,5 @@
 use mongodb::error::Error as MongoError;
+
 #[derive(Debug)]
 pub enum Error {
     WalletAlreadyExists,

@@ -1,24 +1,39 @@
-use tokio::sync::RwLock;
 use std::sync::Arc;
 use std::convert::Infallible;
-use lru::LruCache;
 use std::collections::HashSet;
+use serde::{Serialize, Deserialize};
+use tokio::sync::RwLock;
+use lru::LruCache;
 use warp::Filter;
 
 mod db;
 mod error;
 mod handlers;
 
-use db::{
-    DB,
-    WalletId,
-    ItemId,
-};
+use db::DB;
 use handlers::{
     add_item_handler,
     retrieve_item_handler,
     create_wallet_handler,
 };
+
+pub type WalletId = u32;
+pub type ItemId = u32;
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Wallet {
+    pub id: WalletId,
+    pub items: Vec<ItemId>,
+}
+
+impl Wallet {
+    pub fn new(id: WalletId) -> Self {
+        Self {
+            id,
+            items: vec![]
+        }
+    }
+}
 
 const CACHE_SIZE: usize = 2;
 pub type WalletCache = Arc<RwLock<LruCache<WalletId, HashSet<ItemId>>>>;

@@ -2,9 +2,9 @@ use std::collections::HashSet;
 use serde::{Serialize, Deserialize};
 use warp::{ Reply, Rejection, reply::json };
 use crate::{
-    DB,
-    db::Wallet,
     error::Error,
+    db::DB,
+    Wallet,
     WalletId,
     ItemId,
     WalletCache,
@@ -95,8 +95,9 @@ pub async fn retrieve_item_handler(wallet_id: u32, item_id: u32, wallet_cache: W
         wallet_cache.get(&wallet_id).map(|items| items.clone())
     };
     let wallet_items = match wallet_items {
+// found in cache
         Some(wallet_items) => wallet_items,
-// if not in cache, fetch from db
+// not in cache, fetch from db
         None => {
             let wallet = wallet_db.get_wallet(wallet_id).await;
             match wallet {
