@@ -24,7 +24,7 @@ $ curl -d '{"V2Body":[654,"Sally"]}' -H 'Content-Type: application/json' localho
 {"status":"success","data":654,"message":null}
 ```
 ### Add Item to Wallet
-`POST /wallet/:wallet_id`. Similary to above, the request body may be one of two versions:
+`POST /wallet/:wallet_id`. As above, the request body may be one of two versions:
 * `{"V1Body": item_id}`
 * `{"V2Body": [item_id, item_name] }`
 
