@@ -37,7 +37,7 @@ $ curl -d '{"V1Body":77}' -H 'Content-Type: application/json' localhost:5000/wal
 $ curl -d '{"V1Body":77}' -H 'Content-Type: application/json' localhost:5000/wallet/65  
 {"status":"error","data":null,"message":"item already in wallet"}
 
-# add the item to a non-existant wallet
+# add the item to a non-existent wallet
 $ curl -d '{"V1Body":77}' -H 'Content-Type: application/json' localhost:5000/wallet/64
 {"status":"error","data":null,"message":"no such wallet"}
 
@@ -51,7 +51,7 @@ $ curl -d '{"V2Body":[123,"An Item"]}' -H 'Content-Type: application/json' local
 $ curl localhost:5000/wallet/65/item/77
 {"status":"success","data":77,"message":null}
 
-# retrieve a non-existant item
+# retrieve a non-existent item
 $ curl localhost:5000/wallet/65/item/78
 {"status":"error","data":null,"message":"no such item"}
 
