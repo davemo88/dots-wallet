@@ -42,6 +42,7 @@ impl DB {
     pub async fn init(&self) -> Result<()> {
         let db = self.client.default_database().unwrap();
 
+// add a wallet collection if it doesn't exist
         if !db.list_collection_names(None).await?.contains(&COLLECTION_NAME.into()) {
             db.create_collection(COLLECTION_NAME, None).await?;
             let collection = db.collection::<Wallet>("wallets");

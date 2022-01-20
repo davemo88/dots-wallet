@@ -35,21 +35,21 @@ impl Wallet {
     }
 }
 
-const CACHE_SIZE: usize = 2;
+// toy cache size
+const CACHE_SIZE: usize = 10;
 pub type WalletCache = Arc<RwLock<LruCache<WalletId, HashSet<ItemId>>>>;
-
-fn with_shared<T: Clone + Send>(shared_resource: T) -> impl Filter<Extract = (T,), Error = Infallible> + Clone {
-    warp::any().map(move || shared_resource.clone())
-}
 
 #[tokio::main]
 async fn main() {
 
+// cache recently accessed wallets
     let wallet_cache: WalletCache = Arc::new(RwLock::new(LruCache::new(CACHE_SIZE)));
 
+// mongodb client
     let wallet_db = DB::new().await.unwrap();
     wallet_db.init().await.unwrap();
 
+// endpoints
     let create_wallet = warp::path("wallet")
         .and(warp::filters::path::end())
         .and(warp::post())
@@ -83,6 +83,11 @@ async fn main() {
         .with(warp::cors().allow_any_origin());
 
     warp::serve(routes).run(([0,0,0,0], 5000)).await;
+}
+
+// wraps shared resources for use by handler functions
+fn with_shared<T: Clone + Send>(shared_resource: T) -> impl Filter<Extract = (T,), Error = Infallible> + Clone {
+    warp::any().map(move || shared_resource.clone())
 }
 
 #[cfg(test)]

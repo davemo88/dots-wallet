@@ -19,6 +19,7 @@ pub enum Status {
     Error,
 }
 
+// convenient standard type for responses
 #[derive(Clone, Debug, Serialize, Deserialize)]
 struct Response<T: Serialize> {
     pub status: Status,
@@ -93,7 +94,7 @@ pub async fn add_item_handler(wallet_id: WalletId, body: AddItemBody, wallet_cac
 }
 
 pub async fn retrieve_item_handler(wallet_id: WalletId, item_id: ItemId, wallet_cache: WalletCache, wallet_db: DB) -> WebResult<impl Reply> {
-// check the cache, if not there fetch the wallet and then put it in the cache
+// check the cache, if not there then fetch the wallet and put it in the cache
     let wallet_items = {
         let mut wallet_cache = wallet_cache.write().await;
         wallet_cache.get(&wallet_id).map(|items| items.clone())
@@ -129,6 +130,7 @@ async fn put_wallet_in_cache(wallet: Wallet, wallet_cache: WalletCache) {
 #[cfg(test)]
 mod test {
 
+// verify how the request bodies are serialized to json
     #[test]
     fn test_print_request_body_json() {
         use super::*;
